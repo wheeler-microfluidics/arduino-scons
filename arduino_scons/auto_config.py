@@ -26,8 +26,12 @@ def get_boost_paths():
 v = sys.version_info
 if os.name == 'nt':
     PYTHON_LIB = 'python%(major)s%(minor)s' % dict(major=v[0], minor=v[1])
-    boost_home, boost_lib_path = get_boost_paths()
-    Export(BOOST_LIB_PATH=boost_lib_path, BOOST_HOME=boost_home)
+    try:
+        boost_home, boost_lib_path = get_boost_paths()
+    except ValueError:
+        pass
+    else:
+        Export(BOOST_LIB_PATH=boost_lib_path, BOOST_HOME=boost_home)
 else:
     PYTHON_LIB = 'python%(major)s.%(minor)s' % dict(major=v[0], minor=v[1])
 
@@ -38,7 +42,10 @@ Export('PYTHON_LIB', 'PYTHON_LIB_PATH', 'PYTHON_INC_PATH')
 
 if __name__ == '__main__':
     if os.name == 'nt':
-        print get_boost_lib_path()
+        try:
+            print get_boost_lib_path()
+        except ValueError:
+            pass
 
     print get_python_path()
     arduino_path, avrdude, avrdude_conf = get_arduino_paths()
