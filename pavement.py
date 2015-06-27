@@ -12,6 +12,8 @@ setup(name='arduino_scons',
       url='http://github.com/wheeler-microfluidics/arduino_scons.git',
       license='GPLv2',
       install_requires=['path_helpers', 'arduino_helpers'],
+      # Install data listed in `MANIFEST.in`
+      include_package_data=True,
       packages=['arduino_scons', 'arduino_scons.site_tools',
                 'arduino_scons.site_tools.disttar'])
 
