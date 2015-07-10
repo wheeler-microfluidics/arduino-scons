@@ -180,7 +180,6 @@ class ArduinoBuildContext(object):
     def resolve_config_vars(self):
         self.AVR_BIN_PREFIX = None
         self.AVRDUDE_CONF = None
-        self.AVR_HOME_DUDE = None
 
         if _platform == 'darwin':
             # For MacOS X, pick up the AVR tools from within Arduino.app
@@ -191,21 +190,18 @@ class ArduinoBuildContext(object):
                                                  get_usb_tty('/dev/'
                                                              'tty.usbserial*'))
             self.SKETCHBOOK_HOME = self.resolve_var('SKETCHBOOK_HOME', '')
-            self.AVR_HOME = self.resolve_var('AVR_HOME',
-                                             os.path.join(self.ARDUINO_HOME,
-                                                          'hardware/tools/avr/'
-                                                          'bin'))
         elif _platform == 'win32':
             # For Windows, use environment variables.
             self.ARDUINO_HOME = self.resolve_var('ARDUINO_HOME', None)
+            if self.ARDUINO_HOME is None:
+                candidate_paths = [path(os.environ['ProgramFiles'])
+                                   .joinpath('Arduino')]
+                for p in candidate_paths:
+                    if p.isdir():
+                        self.ARDUINO_HOME = p
+                        break
             self.ARDUINO_PORT = self.resolve_var('ARDUINO_PORT', '')
             self.SKETCHBOOK_HOME = self.resolve_var('SKETCHBOOK_HOME', '')
-            if self.ARDUINO_HOME:
-                self.AVR_HOME = self.resolve_var('AVR_HOME',
-                                                 '%s' % os.path
-                                                 .join(self.ARDUINO_HOME,
-                                                       'hardware', 'tools',
-                                                       'avr', 'bin'))
         else:
             # For Ubuntu Linux (12.04 or higher)
             self.ARDUINO_HOME = self.resolve_var('ARDUINO_HOME',
@@ -217,8 +213,6 @@ class ArduinoBuildContext(object):
                 default_sketchbook_home = ''
             self.SKETCHBOOK_HOME = self.resolve_var('SKETCHBOOK_HOME',
                                                     default_sketchbook_home)
-            self.AVR_HOME = self.resolve_var('AVR_HOME', '/usr/bin/')
-            self.AVR_HOME_DUDE = self.resolve_var('AVR_HOME', '/usr/bin/')
 
         self.ARDUINO_BOARD = self.resolve_var('ARDUINO_BOARD', 'uno')
         # Default to 0 if nothing is specified
