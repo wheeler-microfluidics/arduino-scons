@@ -136,6 +136,47 @@ class ArduinoBuildContext(object):
         ser.setDTR(0)
         ser.close()
 
+    def fix_windows_arduino_avr_ld(self):
+        '''
+        Check `avr-ld.exe` in Arduino home and replace if necessary.
+
+        The linker (`avr-ld.exe`) distributed with the Windows Arduino IDE version
+        1.5-1.6.5rc2 crashes for certain valid compiled code.  To work around this
+        issue, the `arduino-scons` package includes an older copy of `avr-ld.exe`
+        from Arduino 1.0.5.
+
+        See [here][1] for details.
+
+        [1]: http://forum.arduino.cc/index.php?topic=310950.30
+        '''
+        import pkg_resources
+        import warnings
+
+        reference_root = path(pkg_resources.resource_filename('arduino_scons',
+                                                              'bin/windows'))
+        current_root = path(self.ARDUINO_HOME).joinpath('hardware', 'tools',
+                                                        'avr')
+
+        for file_path in (('bin', 'avr-ld.exe'), ('avr', 'bin', 'ld.exe')):
+            reference_ld = reference_root.joinpath(*file_path)
+            current_ld = current_root.joinpath(*file_path)
+
+            if not current_ld.isfile():
+                return
+
+            reference_hash = reference_ld.read_hexhash('md5')
+            current_hash = current_ld.read_hexhash('md5')
+
+            if reference_hash != current_hash:
+                # Rename original `avr-ld.exe` to `avr-ld.exe.original`.
+                current_ld.move(current_ld.parent.joinpath(current_ld.name +
+                                                           '.original'))
+                # Overwrite `avr-ld.exe` with bundled `avr-ld.exe`.
+                reference_ld.copy(current_ld)
+                warnings.warn('Replacing "%s" in Arduino IDE.  Original '
+                              'renamed to "%s.original"' % (current_ld.name,
+                                                            current_ld.name))
+
     def resolve_config_vars(self):
         self.AVR_BIN_PREFIX = None
         self.AVRDUDE_CONF = None
@@ -198,6 +239,7 @@ class ArduinoBuildContext(object):
 
         self.ARDUINO_CORE = self.board.get_core_dir()
         self.ARDUINO_SKEL = self.ARDUINO_CORE.joinpath('main.cpp')
+        self.fix_windows_arduino_avr_ld()
 
         if self.ARDUINO_VER == 0:
             arduinoHeader = self.ARDUINO_CORE.joinpath('Arduino.h')
