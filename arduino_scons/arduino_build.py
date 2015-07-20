@@ -396,8 +396,8 @@ class ArduinoBuildContext(object):
 
     def get_lib_path(self, lib):
         for lib_root in self.ARDUINO_LIBS[::-1]:
-            for f in path(lib_root).walkfiles():
-                if f.name == lib:
+            for f in path(lib_root).walk():
+                if f.parent.name == f.namebase and f.name == lib:
                     return f
         raise ValueError('Library not found: %s' % lib)
 
