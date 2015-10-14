@@ -5,13 +5,13 @@ import os
 from itertools import chain
 
 from path_helpers import path
+from arduino_helpers import documents_directory
 
 home_dir = path('~').expand()
 
 ARDUINO_SEARCH_PATHS = [home_dir, ]
 if _platform == 'win32':
-    from win32com.shell import shell, shellcon
-    mydocs = shell.SHGetFolderPath(0, shellcon.CSIDL_PERSONAL, 0, 0)
+    mydocs = documents_directory()
     AVRDUDE_NAME = 'avrdude.exe'
     ARDUINO_SEARCH_PATHS += [path(mydocs), path('%SYSTEMDRIVE%/').expand(),
                              path('%PROGRAMFILES%').expand(), ]
