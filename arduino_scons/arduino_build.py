@@ -51,6 +51,16 @@ from SCons.Environment import Environment
 from SCons.Builder import Builder
 
 
+def home_dir():
+    if platform.system() == 'Windows':
+        from win32com.shell import shell, shellcon
+
+        dir = shell.SHGetFolderPath(0, shellcon.CSIDL_PERSONAL, 0, 0)
+    else:
+        dir = path('~').expand()
+    return path(dir)
+
+
 def run(cmd):
     '''
     Run a command and decipher the return code. Exit by default.
@@ -203,7 +213,9 @@ class ArduinoBuildContext(object):
                         self.ARDUINO_HOME = p
                         break
             self.ARDUINO_PORT = self.resolve_var('ARDUINO_PORT', '')
-            self.SKETCHBOOK_HOME = self.resolve_var('SKETCHBOOK_HOME', '')
+            self.SKETCHBOOK_HOME = self.resolve_var('SKETCHBOOK_HOME',
+                                                    home_dir()
+                                                    .joinpath('Arduino'))
         else:
             # For Ubuntu Linux (12.04 or higher)
             self.ARDUINO_HOME = self.resolve_var('ARDUINO_HOME',
